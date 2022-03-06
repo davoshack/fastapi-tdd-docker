@@ -82,7 +82,7 @@ jobs:
     needs: [build, test]
     env:
       HEROKU_APP_NAME: tranquil-oasis-68718
-      HEROKU_REGISTRY_IMAGE: registry.heroku.com/${HEROKU_APP_NAME}/summarizer
+      HEROKU_REGISTRY_IMAGE: registry.heroku.com/${HEROKU_APP_NAME}/web
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.0
