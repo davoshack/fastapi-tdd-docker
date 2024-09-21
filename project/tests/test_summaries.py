@@ -25,6 +25,12 @@ def test_create_summaries_invalid_json(test_app):
         ]
     }
 
+    response = test_app.post("/summaries/", data=json.dumps({"url": "invalid://url"}))
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"][0]["msg"] == "URL scheme should be 'http' or 'https'"
+    )
+
 
 def test_read_summary(test_app_with_db):
     response = test_app_with_db.post(
@@ -46,6 +52,21 @@ def test_read_summary_incorrect_id(test_app_with_db):
     response = test_app_with_db.get("/summaries/999/")
     assert response.status_code == 404
     assert response.json()["detail"] == "Summary not found"
+
+    response = test_app_with_db.get("/summaries/0/")
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [
+            {
+                "ctx": {"gt": 0},
+                "input": "0",
+                "loc": ["path", "id"],
+                "msg": "Input should be greater than 0",
+                "type": "greater_than",
+                "url": "https://errors.pydantic.dev/2.5/v/greater_than",
+            }
+        ]
+    }
 
 
 def test_read_all_summaries(test_app_with_db):
@@ -77,6 +98,21 @@ def test_remove_summary_incorrect_id(test_app_with_db):
     assert response.status_code == 404
     assert response.json()["detail"] == "Summary not found"
 
+    response = test_app_with_db.delete("/summaries/0/")
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [
+            {
+                "ctx": {"gt": 0},
+                "input": "0",
+                "loc": ["path", "id"],
+                "msg": "Input should be greater than 0",
+                "type": "greater_than",
+                "url": "https://errors.pydantic.dev/2.5/v/greater_than",
+            }
+        ]
+    }
+
 
 def test_update_summary(test_app_with_db):
     response = test_app_with_db.post(
@@ -104,6 +140,24 @@ def test_update_summary_incorrect_id(test_app_with_db):
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Summary not found"
+
+    response = test_app_with_db.put(
+        f"/summaries/0/",
+        data=json.dumps({"url": "https://foo.bar", "summary": "updated!"}),
+    )
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [
+            {
+                "ctx": {"gt": 0},
+                "input": "0",
+                "loc": ["path", "id"],
+                "msg": "Input should be greater than 0",
+                "type": "greater_than",
+                "url": "https://errors.pydantic.dev/2.5/v/greater_than",
+            }
+        ]
+    }
 
 
 def test_update_summary_invalid_json(test_app_with_db):
@@ -147,11 +201,9 @@ def test_update_summary_invalid_keys(test_app_with_db):
     assert response.json() == {
         "detail": [
             {
-                "input": {"url": "https://foo.bar"},
                 "loc": ["body", "summary"],
-                "msg": "Field required",
-                "type": "missing",
-                "url": "https://errors.pydantic.dev/2.5/v/missing",
+                "msg": "field required",
+                "type": "value_error.missing",
             }
         ]
     }
@@ -161,4 +213,6 @@ def test_update_summary_invalid_keys(test_app_with_db):
         data=json.dumps({"url": "invalid://url", "summary": "updated!"}),
     )
     assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "URL scheme not permitted"
+    assert (
+        response.json()["detail"][0]["msg"] == "URL scheme should be 'http' or 'https'"
+    )
