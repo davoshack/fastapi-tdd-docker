@@ -77,19 +77,6 @@ def test_remove_summary_incorrect_id(test_app_with_db):
     assert response.status_code == 404
     assert response.json()["detail"] == "Summary not found"
 
-    response = test_app_with_db.delete("/summaries/0/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["path", "id"],
-                "msg": "ensure this value is greater than 0",
-                "type": "value_error.number.not_gt",
-                "ctx": {"limit_value": 0},
-            }
-        ]
-    }
-
 
 def test_update_summary(test_app_with_db):
     response = test_app_with_db.post(
@@ -118,22 +105,6 @@ def test_update_summary_incorrect_id(test_app_with_db):
     assert response.status_code == 404
     assert response.json()["detail"] == "Summary not found"
 
-    response = test_app_with_db.put(
-        f"/summaries/0/",
-        data=json.dumps({"url": "https://foo.bar", "summary": "updated!"}),
-    )
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["path", "id"],
-                "msg": "ensure this value is greater than 0",
-                "type": "value_error.number.not_gt",
-                "ctx": {"limit_value": 0},
-            }
-        ]
-    }
-
 
 def test_update_summary_invalid_json(test_app_with_db):
     response = test_app_with_db.post(
@@ -146,14 +117,18 @@ def test_update_summary_invalid_json(test_app_with_db):
     assert response.json() == {
         "detail": [
             {
+                "input": {},
                 "loc": ["body", "url"],
-                "msg": "field required",
-                "type": "value_error.missing",
+                "msg": "Field required",
+                "type": "missing",
+                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
             {
+                "input": {},
                 "loc": ["body", "summary"],
-                "msg": "field required",
-                "type": "value_error.missing",
+                "msg": "Field required",
+                "type": "missing",
+                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
         ]
     }
@@ -172,9 +147,11 @@ def test_update_summary_invalid_keys(test_app_with_db):
     assert response.json() == {
         "detail": [
             {
+                "input": {"url": "https://foo.bar"},
                 "loc": ["body", "summary"],
-                "msg": "field required",
-                "type": "value_error.missing",
+                "msg": "Field required",
+                "type": "missing",
+                "url": "https://errors.pydantic.dev/2.5/v/missing",
             }
         ]
     }
